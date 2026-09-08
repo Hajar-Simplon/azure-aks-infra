@@ -1,0 +1,68 @@
+image:
+  name: hashicorp/terraform:1.13
+  entrypoint: [""]
+
+stages:
+  - validate
+  - plan
+  - apply
+
+variables:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  ARM_USE_OIDC: "true"
+  ARM_USE_AZUREAD: "true"
+  ARM_CLIENT_ID: "$AZURE_CLIENT_ID"
+  ARM_TENANT_ID: "$AZURE_TENANT_ID"
+  ARM_SUBSCRIPTION_ID: "$AZURE_SUBSCRIPTION_ID"
+  TF_VAR_subscription_id: "$AZURE_SUBSCRIPTION_ID"
+
+.terraform_init: &terraform_init
+  - terraform init -backend-config="resource_group_name=$TF_STATE_RESOURCE_GROUP" -backend-config="storage_account_name=$TF_STATE_STORAGE_ACCOUNT" -backend-config="container_name=tfstate" -backend-config="key=aks-lab.tfstate"
+
+fmt:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive
+
+validate:
+  stage: validate
+  before_script: *terraform_init
+  script:
+    - terraform validate
+
+plan:
+  stage: plan
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: "api://AzureADTokenExchange"
+  variables:
+    ARM_OIDC_TOKEN: "$GITLAB_OIDC_TOKEN"
+  before_script: *terraform_init
+  script:
+    - terraform plan -out=main.tfplan
+  artifacts:
+    paths:
+      - main.tfplan
+    expire_in: 1 day
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+apply:
+  stage: apply
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: "api://AzureADTokenExchange"
+  variables:
+    ARM_OIDC_TOKEN: "$GITLAB_OIDC_TOKEN"
+  before_script: *terraform_init
+  script:
+    - terraform apply main.tfplan
+  dependencies:
+    - plan
+  environment:
+    name: lab
+  resource_group: lab
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

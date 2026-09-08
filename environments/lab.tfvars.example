@@ -1,0 +1,13 @@
+subscription_id     = "5e683e0f-b00c-48d6-9769-5aaf598de8f1"
+resource_group_name = "hmezouarRG"
+location            = "francecentral"
+environment         = "eval"
+project_name        = "hmezouar-aks"
+node_vm_size        = "Standard_D2_v3"
+node_count          = 1
+
+# Add the OBJECT ID (not group name) when the Entra group is ready.
+employee_group_object_id = null
+
+# Used by the documented GitLab OIDC setup; no client secret is required.
+gitlab_project_path = null
