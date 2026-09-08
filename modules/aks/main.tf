@@ -8,6 +8,7 @@ variable "acr_id" { type = string }
 variable "key_vault_id" { type = string }
 variable "key_vault_tenant_id" { type = string }
 variable "postgres_namespace" { type = string }
+variable "postgres_restore_namespace" { type = string }
 variable "postgres_service_account" { type = string }
 variable "tags" { type = map(string) }
 
@@ -87,11 +88,19 @@ resource "azurerm_role_assignment" "acr_pull" {
 }
 
 resource "azurerm_federated_identity_credential" "postgres" {
-  name      = "fic-${var.name_prefix}-postgres"
-  audience  = ["api://AzureADTokenExchange"]
-  issuer    = azurerm_kubernetes_cluster.this.oidc_issuer_url
-  parent_id = azurerm_user_assigned_identity.postgres.id
-  subject   = "system:serviceaccount:${var.postgres_namespace}:${var.postgres_service_account}"
+  name                      = "fic-${var.name_prefix}-postgres"
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = azurerm_kubernetes_cluster.this.oidc_issuer_url
+  user_assigned_identity_id = azurerm_user_assigned_identity.postgres.id
+  subject                   = "system:serviceaccount:${var.postgres_namespace}:${var.postgres_service_account}"
+}
+
+resource "azurerm_federated_identity_credential" "postgres_restore" {
+  name                      = "fic-${var.name_prefix}-postgres-restore"
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = azurerm_kubernetes_cluster.this.oidc_issuer_url
+  user_assigned_identity_id = azurerm_user_assigned_identity.postgres.id
+  subject                   = "system:serviceaccount:${var.postgres_restore_namespace}:${var.postgres_service_account}"
 }
 
 resource "azurerm_role_assignment" "postgres_key_vault" {

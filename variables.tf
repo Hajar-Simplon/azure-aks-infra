@@ -48,7 +48,7 @@ variable "node_count" {
 variable "employee_group_object_id" {
   description = "Optional Entra group object ID that receives SMB Contributor on the employee storage account."
   type        = string
-  default     = null
+  default     = "b3038213-ba5b-4dd5-af8f-b4bbbd0da096"
   nullable    = true
 }
 

@@ -25,6 +25,11 @@ resource "azurerm_storage_account" "this" {
   allow_nested_items_to_be_public = false
   shared_access_key_enabled       = true
 
+  azure_files_authentication {
+    directory_type                 = "AADKERB"
+    default_share_level_permission = "None"
+  }
+
   blob_properties {
     versioning_enabled = true
     delete_retention_policy {

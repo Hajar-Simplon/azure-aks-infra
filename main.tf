@@ -31,18 +31,19 @@ module "key_vault" {
 module "aks" {
   source = "./modules/aks"
 
-  name_prefix              = local.name_prefix
-  location                 = var.location
-  resource_group_name      = data.azurerm_resource_group.existing.name
-  subnet_id                = module.network.aks_subnet_id
-  node_vm_size             = var.node_vm_size
-  node_count               = var.node_count
-  acr_id                   = module.acr.id
-  key_vault_id             = module.key_vault.id
-  key_vault_tenant_id      = data.azurerm_client_config.current.tenant_id
-  postgres_namespace       = "database"
-  postgres_service_account = "postgres-workload"
-  tags                     = local.common_tags
+  name_prefix                = local.name_prefix
+  location                   = var.location
+  resource_group_name        = data.azurerm_resource_group.existing.name
+  subnet_id                  = module.network.aks_subnet_id
+  node_vm_size               = var.node_vm_size
+  node_count                 = var.node_count
+  acr_id                     = module.acr.id
+  key_vault_id               = module.key_vault.id
+  key_vault_tenant_id        = data.azurerm_client_config.current.tenant_id
+  postgres_namespace         = "database"
+  postgres_restore_namespace = "database-restore"
+  postgres_service_account   = "postgres-workload"
+  tags                       = local.common_tags
 }
 
 module "storage" {

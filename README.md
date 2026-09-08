@@ -40,7 +40,7 @@ Run the printed backend initialization command from the repository root.
 Copy-Item environments/lab.tfvars.example environments/lab.tfvars
 ```
 
-`lab.tfvars` is intentionally ignored. Set `employee_group_object_id` when the Entra group exists. Never put a password, storage key, kubeconfig, SAS token, or service-principal secret in this file.
+`lab.tfvars` is intentionally ignored. Never put a password, storage key, kubeconfig, SAS token, or service-principal secret in this file.
 
 ## 3. Review infrastructure
 
@@ -67,17 +67,24 @@ The `azure-aks-app` repository should create:
 - StorageClass/PVC with provisioner `disk.csi.azure.com`, SKU `StandardSSD_LRS`, and access mode `ReadWriteOnce`
 - Argo CD Application with automated sync, self-heal, and prune
 
-## AZ-104 learning map
+## Employee file share
 
-| Topic | Where to study it here |
-|---|---|
-| Resource groups | resource organization and deployment scope |
-| VNets/subnets | `modules/network` |
-| Managed identities/RBAC | AKS, ACR pull, Key Vault and backup role assignments |
-| Storage | Blob remote state, Azure Files SMB, Azure Managed Disk via CSI |
-| Data protection | Backup Vault, policy, extension, snapshots and restore testing |
-| Governance | tags, policy discovery, least privilege and plan review |
+The `employees` Azure Files share uses SMB 3.1.1, Microsoft Entra Kerberos, and an explicit `Storage File Data SMB Share Contributor` assignment for the Entra security group `employees`. No default share-level permission is granted to other identities.
 
-## Important recovery test
+The share can be reviewed in the Azure portal under the storage account, then **Data storage > File shares > employees**. Group access is visible under **Access control IAM > Role assignments**.
 
-After application deployment, insert a recognizable row into PostgreSQL, run or wait for an AKS backup, restore into a different namespace, and prove the row exists. A successful backup job without a restore test is not enough evidence of recoverability.
+## Recovery verification
+
+The database namespace is protected by Azure Backup every four hours with seven-day operational retention. The recovery test created a recognizable PostgreSQL row, produced an incremental recovery point and Azure Disk snapshot, then restored the workload into `database-restore` with its volume data.
+
+The restored PostgreSQL pod reached `Running`, its 16 Gi PVC reached `Bound`, and `SELECT * FROM lab_check;` returned `azure-disk-persists`. The restore namespace has a Workload Identity federated credential so the restored pod can mount the Key Vault secret.
+
+Useful verification commands:
+
+```bash
+kubectl get application postgresql -n argocd
+kubectl get pod,pvc -n database
+kubectl get pod,pvc -n database-restore
+kubectl exec -n database-restore postgres-0 -- \
+  psql -U postgres -d appdb -c "SELECT * FROM lab_check;"
+```
