@@ -27,7 +27,8 @@ fmt:
 
 validate:
   stage: validate
-  before_script: *terraform_init
+  before_script:
+    - terraform init -backend=false
   script:
     - terraform validate
 
