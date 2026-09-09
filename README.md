@@ -69,7 +69,7 @@ The `azure-aks-app` repository should create:
 
 ## Employee file share
 
-The `employees` Azure Files share uses SMB 3.1.1, Microsoft Entra Kerberos, and an explicit `Storage File Data SMB Share Contributor` assignment for the Entra security group `employees`. No default share-level permission is granted to other identities.
+The `employees` Azure Files share uses SMB 3.1.1 and Microsoft Entra Kerberos. The Entra security group `employees-hmezouar` receives both `Storage File Data SMB Share Reader` and `Storage File Data SMB Share Contributor`, scoped directly to this file share. Access is then managed by adding or removing users in the group. No default share-level permission is granted to other identities.
 
 The share can be reviewed in the Azure portal under the storage account, then **Data storage > File shares > employees**. Group access is visible under **Access control IAM > Role assignments**.
 

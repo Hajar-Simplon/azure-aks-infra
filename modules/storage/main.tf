@@ -68,10 +68,18 @@ resource "azurerm_storage_container" "aks_backup" {
   container_access_type = "private"
 }
 
-resource "azurerm_role_assignment" "employees" {
+resource "azurerm_role_assignment" "employees_smb_reader" {
   count = var.employee_group_object_id == null ? 0 : 1
 
-  scope                = azurerm_storage_account.this.id
+  scope                = azurerm_storage_share.employees.id
+  role_definition_name = "Storage File Data SMB Share Reader"
+  principal_id         = var.employee_group_object_id
+}
+
+resource "azurerm_role_assignment" "employees_smb_contributor" {
+  count = var.employee_group_object_id == null ? 0 : 1
+
+  scope                = azurerm_storage_share.employees.id
   role_definition_name = "Storage File Data SMB Share Contributor"
   principal_id         = var.employee_group_object_id
 }
