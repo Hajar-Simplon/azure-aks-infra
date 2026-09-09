@@ -13,6 +13,7 @@ override.tf.json
 .terraformrc
 terraform.rc
 *.auto.tfvars
+environments/*.tfvars
 !*.tfvars.example
 kubeconfig*
 .env
